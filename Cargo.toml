@@ -1,0 +1,13 @@
+[package]
+name = "origami"
+version = "0.1.0"
+authors = ["E H Murdoch <ehmurdoch47@protonmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.sdl2]
+git = "https://github.com/rust-sdl2/rust-sdl2"
+
+[dependencies.gl]
+git = "https://github.com/bjz/gl-rs"
