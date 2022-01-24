@@ -26,6 +26,8 @@ fn main() -> Result<(), String> {
     // a way of getting the events
     let mut event_pump = sdl_context.event_pump()?;
 
+    setup(&mut canvas)?;
+
     // create a loop with the label 'running. we need to do it in this way
     // because then, when we call break, we break out of the game loop
     // rather than just the event poll loop.
@@ -35,23 +37,27 @@ fn main() -> Result<(), String> {
             // do different things based on what type of event it is
             match event {
                 // a quit event with any attributes
-                sdl2::event::Event::Quit {..} |
-                // or a keydown event
+                sdl2::event::Event::Quit {..} => {
+                    break 'running
+                },
+                // a keydown event
                 sdl2::event::Event::KeyDown {
-                    // which has a keycode of Esc
-                    keycode: Some(sdl2::keyboard::Keycode::Escape),
-                    // and any other attributes
+                    keycode,
                     ..
-                } => break 'running, // break out of the game loop
+                } => {
+                    match keycode {
+                        // which has a keycode of Esc
+                        Some(sdl2::keyboard::Keycode::Escape) => {
+                            // and any other attributes
+                            break 'running // break out of the game loop
+                        },
+                        _ => {}
+                    }
+                },
                 // else do nothing
                 _ => {}
             }
         }
-
-        draw(&mut canvas)?;
-
-        // update the canvas
-        canvas.present();
 
         // sleep for 1/30 of a second (there are 1billion ns in 1 second).
         // this means there are 30 frames per second
@@ -62,18 +68,32 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-// main drawing function
-fn draw(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<(), String> {
-    let size = canvas.output_size()?;
-    let width = size.0 as i32;
-    let height = size.1 as i32;
+fn setup(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<(), String> {
+    //let size = canvas.output_size()?;
+    //let width = size.0 as i32;
+    //let height = size.1 as i32;
 
     // fill the canvas
     canvas.set_draw_color(sdl2::pixels::Color::WHITE);
     canvas.clear();
 
+    let mut nodes = Vec::new();
+    nodes.push((10, 10));
+    nodes.push((20, 20));
+
+    let mut edges = Vec::new();
+    edges.push((0, 1));
+
     canvas.set_draw_color(sdl2::pixels::Color::BLACK);
-    canvas.draw_line((width / 2, 0), (width / 2, height))?;
+    for edge in edges.into_iter() {
+        canvas.draw_line(nodes[edge.0], nodes[edge.1])?;
+    }
+
+    //canvas.draw_line((width / 2, 0), (width / 2, height))?;
+
+    // update the canvas
+    canvas.present();
 
     Ok(())
 }
+
