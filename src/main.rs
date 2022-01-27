@@ -37,14 +37,12 @@ fn main() -> Result<(), String> {
             // do different things based on what type of event it is
             match event {
                 // a quit event with any attributes
-                sdl2::event::Event::Quit {..} => {
+                sdl2::event::Event::Quit { .. } => {
                     break 'running
                 },
-                // a keydown event
-                sdl2::event::Event::KeyDown {
-                    keycode,
-                    ..
-                } => {
+                // a keydown event, and a shorthand way of getting its
+                // keycode to perform further matches on
+                sdl2::event::Event::KeyDown { keycode, .. } => {
                     match keycode {
                         // which has a keycode of Esc
                         Some(sdl2::keyboard::Keycode::Escape) => {
@@ -69,17 +67,18 @@ fn main() -> Result<(), String> {
 }
 
 fn setup(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<(), String> {
-    //let size = canvas.output_size()?;
-    //let width = size.0 as i32;
-    //let height = size.1 as i32;
+    let size = canvas.output_size()?;
+    let width = size.0 as i32;
+    let height = size.1 as i32;
 
     // fill the canvas
     canvas.set_draw_color(sdl2::pixels::Color::WHITE);
     canvas.clear();
 
     let mut nodes = Vec::new();
-    nodes.push((10, 10));
-    nodes.push((20, 20));
+    for _ in 0..2 {
+        nodes.push(random_point(width, height));
+    }
 
     let mut edges = Vec::new();
     edges.push((0, 1));
@@ -97,3 +96,11 @@ fn setup(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<(), S
     Ok(())
 }
 
+fn random_point(max_x: i32, max_y: i32) -> (i32, i32) {
+    let mut rng = rand::thread_rng();
+
+    let x: i32 = rand::Rng::gen_range(&mut rng, 0..max_x);
+    let y: i32 = rand::Rng::gen_range(&mut rng, 0..max_y);
+
+    (x, y)
+}

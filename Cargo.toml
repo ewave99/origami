@@ -11,3 +11,6 @@ git = "https://github.com/rust-sdl2/rust-sdl2"
 
 [dependencies.gl]
 git = "https://github.com/bjz/gl-rs"
+
+[dependencies.rand]
+version = "0.8"
