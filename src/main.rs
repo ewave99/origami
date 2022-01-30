@@ -1,3 +1,6 @@
+const WIDTH: u32 = 400;
+const HEIGHT: u32 = 400;
+
 // main function
 fn main() -> Result<(), String> {
     // initialise sdl and get the context.
@@ -10,7 +13,7 @@ fn main() -> Result<(), String> {
 
     // using the video subsystem, initialise the window
     let window = video_subsystem
-        .window("rust-sdl2 demo", 400, 400)
+        .window("rust-sdl2 demo", WIDTH, HEIGHT)
         .position_centered()
         .opengl()
         .build()
@@ -26,7 +29,17 @@ fn main() -> Result<(), String> {
     // a way of getting the events
     let mut event_pump = sdl_context.event_pump()?;
 
-    setup(&mut canvas)?;
+    // initialise nodes
+    let mut nodes = Vec::new();
+    for _ in 0..2 {
+        nodes.push(random_point(WIDTH, HEIGHT));
+    }
+
+    // initialise edges
+    let mut edges = Vec::new();
+    edges.push((0, 1));
+
+    setup(&mut canvas, &nodes, &edges)?;
 
     // create a loop with the label 'running. we need to do it in this way
     // because then, when we call break, we break out of the game loop
@@ -49,6 +62,26 @@ fn main() -> Result<(), String> {
                             // and any other attributes
                             break 'running // break out of the game loop
                         },
+                        Some(sdl2::keyboard::Keycode::Return) => {
+                            let node = random_point(WIDTH, HEIGHT);
+
+                            draw_node(&mut canvas, &node)?;
+
+                            let next_node_index: i32 = rand::Rng::gen_range(
+                                &mut rand::thread_rng(),
+                                0..(nodes.len() as i32)
+                            );
+
+                            nodes.push(node);
+
+                            let edge = (nodes.len() as i32 - 1, next_node_index);
+
+                            draw_edge(&mut canvas, &nodes, &edge)?;
+
+                            edges.push(edge);
+
+                            canvas.present();
+                        }
                         _ => {}
                     }
                 },
@@ -66,22 +99,14 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn setup(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<(), String> {
-    let size = canvas.output_size()?;
-    let width = size.0 as i32;
-    let height = size.1 as i32;
-
+fn setup(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    nodes: &Vec<(i32, i32)>,
+    edges: &Vec<(i32, i32)>
+) -> Result<(), String> {
     // fill the canvas
     canvas.set_draw_color(sdl2::pixels::Color::WHITE);
     canvas.clear();
-
-    let mut nodes = Vec::new();
-    for _ in 0..2 {
-        nodes.push(random_point(width, height));
-    }
-
-    let mut edges = Vec::new();
-    edges.push((0, 1));
 
     draw_edges(canvas, &nodes, &edges)?;
     draw_nodes(canvas, &nodes)?;
@@ -92,13 +117,13 @@ fn setup(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<(), S
     Ok(())
 }
 
-fn random_point(max_x: i32, max_y: i32) -> (i32, i32) {
+fn random_point(max_x: u32, max_y: u32) -> (i32, i32) {
     let mut rng = rand::thread_rng();
 
-    let x: i32 = rand::Rng::gen_range(&mut rng, 0..max_x);
-    let y: i32 = rand::Rng::gen_range(&mut rng, 0..max_y);
+    let x: u32 = rand::Rng::gen_range(&mut rng, 0..max_x);
+    let y: u32 = rand::Rng::gen_range(&mut rng, 0..max_y);
 
-    (x, y)
+    (x as i32, y as i32)
 }
 
 fn draw_edges(
@@ -107,15 +132,25 @@ fn draw_edges(
     edges: &Vec<(i32, i32)>
 ) -> Result<(), String> {
     for edge in edges.into_iter() {
-        sdl2::gfx::primitives::DrawRenderer::line(
-            canvas,
-            nodes[edge.0 as usize].0 as i16,
-            nodes[edge.0 as usize].1 as i16,
-            nodes[edge.1 as usize].0 as i16,
-            nodes[edge.1 as usize].1 as i16,
-            sdl2::pixels::Color::BLACK
-        )?;
+        draw_edge(canvas, nodes, edge)?;
     }
+
+    Ok(())
+}
+
+fn draw_edge(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    nodes: &Vec<(i32, i32)>,
+    edge: &(i32, i32)
+) -> Result<(), String> {
+    sdl2::gfx::primitives::DrawRenderer::line(
+        canvas,
+        nodes[edge.0 as usize].0 as i16,
+        nodes[edge.0 as usize].1 as i16,
+        nodes[edge.1 as usize].0 as i16,
+        nodes[edge.1 as usize].1 as i16,
+        sdl2::pixels::Color::BLACK
+    )?;
 
     Ok(())
 }
@@ -125,14 +160,23 @@ fn draw_nodes(
     nodes: &Vec<(i32, i32)>
 ) -> Result<(), String> {
     for node in nodes.into_iter() {
-        sdl2::gfx::primitives::DrawRenderer::circle(
-            canvas,
-            node.0 as i16,
-            node.1 as i16,
-            5,
-            sdl2::pixels::Color::BLACK
-        )?;
+        draw_node(canvas, node)?;
     }
+
+    Ok(())
+}
+
+fn draw_node(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    node: &(i32, i32)
+) -> Result<(), String> {
+    sdl2::gfx::primitives::DrawRenderer::circle(
+        canvas,
+        node.0 as i16,
+        node.1 as i16,
+        8,
+        sdl2::pixels::Color::BLACK
+    )?;
 
     Ok(())
 }
