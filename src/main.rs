@@ -83,12 +83,8 @@ fn setup(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) -> Result<(), S
     let mut edges = Vec::new();
     edges.push((0, 1));
 
-    canvas.set_draw_color(sdl2::pixels::Color::BLACK);
-    for edge in edges.into_iter() {
-        canvas.draw_line(nodes[edge.0], nodes[edge.1])?;
-    }
-
-    //canvas.draw_line((width / 2, 0), (width / 2, height))?;
+    draw_edges(canvas, &nodes, &edges)?;
+    draw_nodes(canvas, &nodes)?;
 
     // update the canvas
     canvas.present();
@@ -103,4 +99,40 @@ fn random_point(max_x: i32, max_y: i32) -> (i32, i32) {
     let y: i32 = rand::Rng::gen_range(&mut rng, 0..max_y);
 
     (x, y)
+}
+
+fn draw_edges(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    nodes: &Vec<(i32, i32)>,
+    edges: &Vec<(i32, i32)>
+) -> Result<(), String> {
+    for edge in edges.into_iter() {
+        sdl2::gfx::primitives::DrawRenderer::line(
+            canvas,
+            nodes[edge.0 as usize].0 as i16,
+            nodes[edge.0 as usize].1 as i16,
+            nodes[edge.1 as usize].0 as i16,
+            nodes[edge.1 as usize].1 as i16,
+            sdl2::pixels::Color::BLACK
+        )?;
+    }
+
+    Ok(())
+}
+
+fn draw_nodes(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    nodes: &Vec<(i32, i32)>
+) -> Result<(), String> {
+    for node in nodes.into_iter() {
+        sdl2::gfx::primitives::DrawRenderer::circle(
+            canvas,
+            node.0 as i16,
+            node.1 as i16,
+            5,
+            sdl2::pixels::Color::BLACK
+        )?;
+    }
+
+    Ok(())
 }
